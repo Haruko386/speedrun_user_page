@@ -1,4 +1,4 @@
-"## speedrun_user_page" 
+## "speedrun_user_page" 
 This is my introductory project for learning Vue.js. Using the src_user.json file exported from speedrun.com, I've recreated the personal profile page from speedrun.com.
 
 > Result is going to be like:
