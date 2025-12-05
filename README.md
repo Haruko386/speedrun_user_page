@@ -1,7 +1,7 @@
 ## "speedrun_user_page" 
-This is my introductory project for learning Vue.js. Using the src_user.json file exported from speedrun.com, I've recreated the personal profile page from speedrun.com.
+这是我学习`Vue.js`的入门项目，我从`speedrun.com`中导出了我的`src_user.json`文件，也就是我的个人信息，我将基于这个json，来复现一个speedrun.com中的个人页面
 
-> Result is going to be like:
+> 复现目标：
 > ![image](/doc/image.png)
 
 ---------------
