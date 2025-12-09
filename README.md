@@ -10,5 +10,5 @@ This is my introductory project for learning Vue.js. Using the src_user.json fil
 
 ```bash
 vue create speedrun_user # 创建
-npm run server           # 启动
+npm run serve           # 启动
 ```

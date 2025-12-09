@@ -1,10 +1,23 @@
 <template>
-  <nav>
+  <!-- <nav>
     <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
+    <router-link to="/about">About</router-link> |
+    <router-link to="/news">News</router-link>
   </nav>
-  <router-view/>
+  <router-view/> -->
+  <test msg="Hello C-API"/>
 </template>
+
+<script>
+import test from '@/components/test.vue'
+export default {
+  name: 'App',
+  components: {
+    test
+  }
+}
+
+</script>
 
 <style>
 #app {
