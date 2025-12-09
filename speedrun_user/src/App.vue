@@ -5,15 +5,21 @@
     <router-link to="/news">News</router-link>
   </nav>
   <router-view/> -->
-  <test msg="Hello C-API"/>
+  <headers/>
+
+  <footers/>
 </template>
 
 <script>
-import test from '@/components/test.vue'
+import mid from '@/components/main.vue'
+import headers from '@/components/header.vue'
+import footers from '@/components/footer.vue'
 export default {
   name: 'App',
   components: {
-    test
+    headers,
+    mid,
+    footers
   }
 }
 
@@ -26,6 +32,15 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+
+body {
+  margin: 0;
+  background-image: url('assets/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 nav {
