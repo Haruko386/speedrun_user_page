@@ -2,14 +2,12 @@
     <div class="banner-container">
         <div class="up">
             <div class="up-inner">
-                <!-- 左侧区域：头像和基本信息 -->
                 <div class="left-section">
                     <div class="avatar">
                         <img src="../assets/avatar.png" class="user-avatar">
                     </div>
                 </div>
 
-                <!-- 右侧区域：用户详细信息 -->
                 <div class="right-section">
                     <div class="name">
                         <img src="../assets/icon.webp" alt="Verified Icon" width="16" height="16">
@@ -22,41 +20,40 @@
                     </div>
 
                     <div class="social">
-                        <!-- Discord (networkId: 5) -->
                         <button v-if="getSocialValue(5)" @click="copyToClipboard(getSocialValue(5))">
-                            <img src="../assets/logo/discord.png" alt="discord" width="16" height="16"/>
+                            <img src="../assets/logo/discord.png" alt="discord" width="18" height="18" align="center" />
                             @ {{ getSocialValue(5) }}
                         </button>
-                        
+
                         <!-- Twitch (networkId: 29) -->
                         <button v-if="getSocialValue(29)">
-                            <img src="../assets/logo/twitch.png" alt="twitch" width="16" height="16"/>
-                            {{ getSocialValue(29) }}
+                            <img src="../assets/logo/twitch.png" alt="twitch" width="16" height="16" align="center" />
+                            <span> {{ getSocialValue(29) }}</span>
                         </button>
-                        
+
                         <!-- YouTube (networkId: 32) -->
                         <button v-if="getSocialValue(32)">
-                            <img src="../assets/logo/Youtube.png" alt="youtube" width="16" height="16"/>
+                            <img src="../assets/logo/Youtube.png" alt="youtube" width="18" height="18" align="center" />
                             {{ getSocialValue(32) }}
                         </button>
-                        
+
                         <!-- Instagram (networkId: 11) -->
                         <button v-if="getSocialValue(11)">
-                            <img src="../assets/logo/instagram.png" alt="instagram" width="16" height="16"/>
+                            <img src="../assets/logo/instagram.png" alt="instagram" width="18" height="18" align="center" />
                             {{ getSocialValue(11) }}
                         </button>
-                        
+
                         <!-- Bilibili (networkId: 3) -->
                         <button v-if="getSocialValue(3)">
-                            <img src="../assets/logo/bilibili.png" alt="bilibili" width="20" height="20"/>
-                            {{ getSocialValue(3) }}
+                            <a :href="'https://space.bilibili.com/'+getSocialValue(3)" target="_blank" @click.stop>
+                                <img src="../assets/logo/bilibili.png" alt="bilibili" width="18" height="18" align="center" />
+                            </a>
                         </button>
-                        
+
                         <!-- Website (networkId: 31) -->
                         <button v-if="getSocialValue(31)">
                             <a :href="getSocialValue(31)" target="_blank" @click.stop>
-                                <img src="../assets/logo/Web.png" alt="website" width="16" height="16"/>
-                                {{ formatWebsiteUrl(getSocialValue(31)) }}
+                                <img src="../assets/logo/Web.png" alt="website" width="18" height="18" align="center" />
                             </a>
                         </button>
                     </div>
@@ -65,25 +62,31 @@
         </div>
 
         <div class="down">
-            <!-- 嵌套路由之各项数据 -->
             <div class="nav-links">
-                <button>Full game runs</button>
-                <button>Level runs</button>
-                <button>Comments</button>
-                <button>Followers</button>
-                <button>Following</button>
-                <button>About</button>
+                <button v-for="tab in tabs" :key="tab.name" :class="{ 'active': currentTab === tab.name }"
+                    @click="currentTab = tab.name">
+                    {{ tab.name }}
+                    <span v-if="tab.count" class="badge">{{ tab.count }}</span>
+                </button>
+            </div>
+
+            <div class="nav-links" id="right-button">
+                <button>Settings</button>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 
 const users = ref(null);
 const userSettings = ref(null);
 const userSocialConnectionList = ref(null);
+const runList = ref([]);
+const userFollowerList = ref([]);
+const commentList = ref([]);
+const gameFollowerList = ref([]);
 
 onMounted(async () => {
     try {
@@ -92,32 +95,42 @@ onMounted(async () => {
         users.value = data.user;
         userSettings.value = data.userSettings;
         userSocialConnectionList.value = data.userSocialConnectionList;
+        runList.value = data.runList;
+        userFollowerList.value = data.userFollowerList;
+        commentList.value = data.commentList;
+        gameFollowerList.value = data.gameFollowerList;
     } catch (error) {
-        console.error('加载JSON数据失败:', error);
+        console.error('Load json failed:', error);
     }
 });
+
+const getAllVerifiedRunCount = () => {
+    return runList.value.filter(run => run.verified==1).length;
+};
+
+const getLevelRunCount = () => {
+    return runList.value.filter(run => run.levelId && run.verified==1).length;
+};
 
 const getSocialValue = (networkId) => {
     if (!userSocialConnectionList.value) return null;
     const connection = userSocialConnectionList.value.find(conn => conn.networkId === networkId);
     return connection ? connection.value : null;
 }
+const copyToClipboard = (text) => { navigator.clipboard.writeText(text); };
 
-const formatWebsiteUrl = (url) => {
-    if (!url) return '';
-    return url.replace(/https?:\/\//, '').replace(/\/$/, '');
-};
+const tabs = computed(() => [
+    { name: 'Full game runs', count: getAllVerifiedRunCount() - getLevelRunCount() },
+    { name: 'Level runs', count: getLevelRunCount() },
+    { name: 'Threads', count: null },
+    { name: 'Comments', count: commentList.value.length },
+    { name: 'Followers', count: 11 }, //speedrun的json没有提供followers的接口，先写死，我后续再自己往json里补充一下吧
+    { name: 'Following', count: userFollowerList.value.length +  gameFollowerList.value.length },
+    { name: 'Pending', count: null },
+    { name: 'About', count: null },
+]);
 
-// 复制到剪贴板
-const copyToClipboard = (text) => {
-    if (!text) return;
-    
-    navigator.clipboard.writeText(text).then(() => {
-        alert(`已复制: ${text}`);
-    }).catch(err => {
-        console.error('复制失败:', err);
-    });
-};
+const currentTab = ref('Level runs');
 </script>
 
 <style scoped>
@@ -137,17 +150,14 @@ const copyToClipboard = (text) => {
 
 .up-inner {
     display: flex;
-    /* 关键：使用Flexbox布局 */
     height: 100%;
     width: 100%;
     padding: 16px 24px;
     box-sizing: border-box;
 }
 
-/* 左侧区域 - 头像 */
 .left-section {
     flex: 0 0 110px;
-    /* 固定宽度 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -168,10 +178,8 @@ const copyToClipboard = (text) => {
     object-fit: cover;
 }
 
-/* 右侧区域 - 用户信息 */
 .right-section {
     flex: 1;
-    /* 占据剩余空间 */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -186,10 +194,6 @@ const copyToClipboard = (text) => {
     font-size: 24px;
     font-weight: 700;
     margin-bottom: 6px;
-}
-
-.name img {
-    vertical-align: middle;
 }
 
 .country {
@@ -223,79 +227,123 @@ const copyToClipboard = (text) => {
     transition: background 0.2s, transform 0.15s;
 }
 
-.social button:hover {
-    background: rgba(255, 255, 255, 0.26);
-    transform: translateY(-2px);
-}
-
-.social button img {
-    width: 18px;
-    height: 18px;
-}
-
-.social button a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* 底部区域 */
-.down {
-    height: 48px;
-    background-color: rgba(41, 56, 61, 0.95);
-    width: 100%;
-    display: flex;
-    align-items: center;
-    padding: 0 24px;
-}
-
-.nav-links {
-    display: flex;
-    gap: 24px;
-}
-
-.nav-links button {
-    color: #C1D7DD;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.3s;
-    /* 移除所有按钮默认样式 */
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    outline: none;
-    /* 确保文字对齐一致 */
-    text-align: left;
-    /* 保留可访问性，添加下划线作为可点击指示 */
-    text-decoration: none;
-}
-
-/* 保留悬停效果 */
-.nav-links button:hover {
-    color: white;
-    text-decoration: underline;
-}
-
-/* 焦点状态，保持可访问性 */
-.nav-links button:focus {
-    outline: none;
-    color: white;
-    text-decoration: underline;
-    box-shadow: 0 0 2px 1px rgba(255, 255, 255, 0.5);
-}
-
-/* 激活状态 */
-.nav-links button:active {
-    color: #a8d8e6;
-    text-decoration: none;
-}
-
 .username {
     font-size: 26px;
     background: linear-gradient(to right, #44BBEE, #FFB3F3);
     -webkit-background-clip: text;
     color: transparent;
+}
+
+/* --- 底部区域样式修改 (关键部分) --- */
+
+.down {
+    height: 48px;
+    background-color: rgba(41, 56, 61, 0.95);
+    width: auto;
+    display: flex;
+    /* 修改：改为 stretch 确保内部元素高度撑满容器 */
+    align-items: stretch;
+    padding: 0 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    /* 可选：增加一条细微的分隔线 */
+}
+
+.nav-links {
+    display: flex;
+    gap: 0;
+    /* 修改：gap改为0，通过 margin 或 padding 控制间距，以便让 hover 区域更大 */
+    height: 100%;
+    /* 撑满高度 */
+}
+
+.nav-links button {
+    position: relative;
+    /* 为了定位底部的横线 */
+    height: 100%;
+    /* 关键：按钮高度撑满父容器 */
+    display: flex;
+    /* 使用 flex 让文字垂直居中 */
+    align-items: center;
+
+    color: #C1D7DD;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: none;
+    border: none;
+    padding: 0 16px;
+    margin: 0;
+    outline: none;
+    text-decoration: none;
+}
+
+/* 徽章样式 (数字) */
+.badge {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+    transition: background-color 0.2s;
+}
+
+/* --- 悬停 (Hover) 状态 --- */
+.nav-links button:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.05);
+    /* 悬停时增加一点微弱的背景色 */
+    text-decoration: none;
+    /* 移除旧的下划线 */
+}
+
+.nav-links button:hover .badge {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* --- 激活 (Active/Current) 状态 --- */
+.nav-links button.active {
+    color: white;
+    /* 不一定要背景色，但可以加深一点 */
+}
+
+.nav-links button.active .badge {
+    background-color: #5d757d;
+    /* 激活时徽章颜色加深 */
+}
+
+/* --- 底部横线动画 (核心逻辑) --- */
+.nav-links button::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    /* 紧贴底部 */
+    left: 0;
+    width: 100%;
+    height: 3px;
+    /* 横线高度 */
+    background-color: white;
+    /* 横线颜色 */
+
+    /* 动画效果：默认缩放为0 (隐藏) */
+    transform: scaleX(0);
+    transform-origin: center;
+    /* 从中间向两边展开 */
+    transition: transform 0.25s ease-out;
+    opacity: 0;
+}
+
+/* 当 active 类存在时，或者 hover 时，显示横线 */
+.nav-links button.active::after,
+.nav-links button:hover::after {
+    transform: scaleX(1);
+    /* 展开 */
+    opacity: 1;
+}
+
+/* 右侧设置按钮单独处理 */
+#right-button {
+    margin-left: auto;
 }
 </style>

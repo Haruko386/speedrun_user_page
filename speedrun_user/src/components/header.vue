@@ -215,6 +215,7 @@ export default {
     border: none;
     margin: 0 12px;
     font-size: 18px;
+    font-weight: 550;
     cursor: pointer;
     color: #333;
     padding: 8px 14px;
@@ -241,7 +242,7 @@ export default {
     border-radius: 5px;
     padding: 5px 10px;
     margin-right: 15px;
-    height: 40px;
+    height: 25px;
     width: auto;
     transition: all 0.2s;
 }
@@ -373,7 +374,6 @@ export default {
     fill: #e74c3c;
 }
 
-/* 简单的淡入淡出动画 */
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 0.2s, transform 0.2s;

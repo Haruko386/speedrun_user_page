@@ -1,27 +1,44 @@
 <template>
-  <div class="panel">
-    <BannerView/>
+  <div class="banner">
+    <BannerView />
   </div>
+  <div class="panel">
+    <!-- <AboutMiniView/> -->
+  </div>
+
 </template>
 
 <script>
 import BannerView from '@/views/BannerView.vue';
+import ListView from '@/views/ListView.vue';
+import AboutMiniView from '@/views/AboutMiniView.vue';
 
 export default {
   name: 'mid',
   components: {
-    BannerView
+    BannerView,
+    ListView,
+    AboutMiniView
   }
 }
 </script>
 
 <style scoped>
-  .panel {
+.banner {
   display: flex;
   width: 70%;
-  margin: 0 auto; /* 左右 margin 自动分配实现水平居中 */
+  margin: 0 auto;
   justify-content: center;
   padding-top: 16px;
-  
+
+}
+
+.panel {
+  width: 70%;
+  margin: 0 auto;
+  margin-top: 16px;
+  min-height: 400px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 </style>
