@@ -1,7 +1,7 @@
 <template>
     <div class="game-run-card">
         <div class="card-header">
-            <div class="game-title">GAMES RUN</div>
+            <div class="game-title">Full Game RUNs</div>
         </div>
 
         <div class="list">
@@ -39,8 +39,30 @@ const gameIdMap = {
     'm1zjgy36': 'Ori and the Will of the Wisps',
     'ldej3o51': 'Among Us',
     'yd487k6e': 'Plants vs. Zombies',
-    'j1ne9me1': 'Celeste Category Extensions',
     '9do8nnk1': 'Overwatch 2',
+}
+
+const levelIdMap = {
+    'gdr16vlw' : "Trail of the warrior",
+    'nwlp4ve9' : "Trail of the Conqueror",
+    'ywemx77d' : "Trail of the Fool",
+    '69znevg9' : "White Palace",
+    'r9g1qop9' : "Path of Pain",
+    '495lx03d' : "Pantheon of the Master",
+    'o9x3rvp9' : "Pantheon of the Artist",
+    'rdq54v2d' : "Pantheon of the Sage",
+    '5d7zqm6w' : "Pantheon of the Knight",
+    'kwj14q7w' : "Pantheon of the Hallownest",
+    'ywe5zq7w' : "Forsaken City",
+    '69z2m8g9' : "Old Site",
+    'r9g4k7p9' : "Celestial Resort",
+    'o9x7mxpd' : "Golden Ridge",
+    '4955vm39' : "Mirror Temple",
+    'rdq76n29' : "Reflection",
+    '5d746x6d' : "The Summit",
+    'ldy23lkw' : "King's Pass",
+    '5d7q0yvw' : "King's Pass NG+",
+    '5d7rg8q9' : "Abyss Climb"
 }
 
 onMounted(async () => {
@@ -96,14 +118,13 @@ const onImgError = (e) => {
     background: linear-gradient(135deg, rgba(75, 100, 106, 0.85), rgba(58, 79, 85, 0.9));
     color: #fff;
     border-radius: 12px;
-    padding: 20px 24px;
+    padding: 0px 20px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     width: 100%;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-
 .card-header {
-    margin-bottom: 16px;
+    padding: 8px;
 }
 
 .game-title {

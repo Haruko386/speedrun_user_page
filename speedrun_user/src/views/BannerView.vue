@@ -39,14 +39,16 @@
 
                         <!-- Instagram (networkId: 11) -->
                         <button v-if="getSocialValue(11)">
-                            <img src="../assets/logo/instagram.png" alt="instagram" width="18" height="18" align="center" />
+                            <img src="../assets/logo/instagram.png" alt="instagram" width="18" height="18"
+                                align="center" />
                             {{ getSocialValue(11) }}
                         </button>
 
                         <!-- Bilibili (networkId: 3) -->
                         <button v-if="getSocialValue(3)">
-                            <a :href="'https://space.bilibili.com/'+getSocialValue(3)" target="_blank" @click.stop>
-                                <img src="../assets/logo/bilibili.png" alt="bilibili" width="18" height="18" align="center" />
+                            <a :href="'https://space.bilibili.com/' + getSocialValue(3)" target="_blank" @click.stop>
+                                <img src="../assets/logo/bilibili.png" alt="bilibili" width="18" height="18"
+                                    align="center" />
                             </a>
                         </button>
 
@@ -63,10 +65,10 @@
 
         <div class="down">
             <div class="nav-links">
-                <button v-for="tab in tabs" :key="tab.name" :class="{ 'active': currentTab === tab.name }"
-                    @click="currentTab = tab.name">
+                <button v-for="tab in tabs" :key="tab.name" :class="{ 'active': isActive(tab.routeName) }"
+                    @click="handleTabClick(tab.routeName)">
                     {{ tab.name }}
-                    <span v-if="tab.count" class="badge">{{ tab.count }}</span>
+                    <span v-if="tab.count !== null" class="badge">{{ tab.count }}</span>
                 </button>
             </div>
 
@@ -79,6 +81,10 @@
 
 <script setup>
 import { onMounted, ref, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+
+const router = useRouter(); // 用于执行跳转
+const route = useRoute();   // 用于获取当前路由状态
 
 const users = ref(null);
 const userSettings = ref(null);
@@ -105,11 +111,11 @@ onMounted(async () => {
 });
 
 const getAllVerifiedRunCount = () => {
-    return runList.value.filter(run => run.verified==1).length;
+    return runList.value.filter(run => run.verified == 1).length;
 };
 
 const getLevelRunCount = () => {
-    return runList.value.filter(run => run.levelId && run.verified==1).length;
+    return runList.value.filter(run => run.levelId && run.verified == 1).length;
 };
 
 const getSocialValue = (networkId) => {
@@ -120,17 +126,32 @@ const getSocialValue = (networkId) => {
 const copyToClipboard = (text) => { navigator.clipboard.writeText(text); };
 
 const tabs = computed(() => [
-    { name: 'Full game runs', count: getAllVerifiedRunCount() - getLevelRunCount() },
-    { name: 'Level runs', count: getLevelRunCount() },
-    { name: 'Threads', count: null },
-    { name: 'Comments', count: commentList.value.length },
-    { name: 'Followers', count: 11 }, //speedrun的json没有提供followers的接口，先写死，我后续再自己往json里补充一下吧
-    { name: 'Following', count: userFollowerList.value.length +  gameFollowerList.value.length },
-    { name: 'Pending', count: null },
-    { name: 'About', count: null },
+    { name: 'Full game runs', routeName: 'FullGameRuns', count: getAllVerifiedRunCount() - getLevelRunCount() },
+    { name: 'Level runs', routeName: 'LevelRuns', count: getLevelRunCount() },
+    { name: 'Threads', routeName: 'Threads', count: null }, // 需在 router 中定义
+    { name: 'Comments', routeName: 'Comments', count: commentList.value ? commentList.value.length : 0 },
+    { name: 'Followers', routeName: 'Followers', count: 11 },
+    { name: 'Following', routeName: 'Following', count: (userFollowerList.value ? userFollowerList.value.length : 0) + (gameFollowerList.value ? gameFollowerList.value.length : 0) },
+    { name: 'Pending', routeName: 'Pending', count: null },
+    { name: 'About', routeName: 'About', count: null },
 ]);
 
-const currentTab = ref('Level runs');
+const isActive = (routeName) => {
+    // 如果没有配置routeName（暂时不可点的），则不激活
+    if (!routeName) return false;
+    // 判断当前路由的名字是否匹配
+    return route.name === routeName;
+};
+
+// 处理点击
+const handleTabClick = (routeName) => {
+    if (routeName) {
+        router.push({ name: routeName });
+    } else {
+        // 如果还没有配置路由页面，暂时什么都不做或弹出提示
+        console.log("No route defined for this tab yet");
+    }
+};
 </script>
 
 <style scoped>
@@ -234,35 +255,26 @@ const currentTab = ref('Level runs');
     color: transparent;
 }
 
-/* --- 底部区域样式修改 (关键部分) --- */
-
 .down {
     height: 48px;
     background-color: rgba(41, 56, 61, 0.95);
     width: auto;
     display: flex;
-    /* 修改：改为 stretch 确保内部元素高度撑满容器 */
     align-items: stretch;
     padding: 0 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    /* 可选：增加一条细微的分隔线 */
 }
 
 .nav-links {
     display: flex;
     gap: 0;
-    /* 修改：gap改为0，通过 margin 或 padding 控制间距，以便让 hover 区域更大 */
     height: 100%;
-    /* 撑满高度 */
 }
 
 .nav-links button {
     position: relative;
-    /* 为了定位底部的横线 */
     height: 100%;
-    /* 关键：按钮高度撑满父容器 */
     display: flex;
-    /* 使用 flex 让文字垂直居中 */
     align-items: center;
 
     color: #C1D7DD;
@@ -278,7 +290,6 @@ const currentTab = ref('Level runs');
     text-decoration: none;
 }
 
-/* 徽章样式 (数字) */
 .badge {
     background-color: rgba(255, 255, 255, 0.15);
     color: #fff;
@@ -289,7 +300,6 @@ const currentTab = ref('Level runs');
     transition: background-color 0.2s;
 }
 
-/* --- 悬停 (Hover) 状态 --- */
 .nav-links button:hover {
     color: white;
     background-color: rgba(255, 255, 255, 0.05);

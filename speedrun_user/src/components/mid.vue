@@ -4,20 +4,23 @@
   </div>
   <div class="panel">
     <div class="list-container">
-      <ListView/>
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </div>
+    
     <div class="info-container">
       <AboutMiniView/>
       <GameRunView/>
       <GameFollowedView/>
     </div>
   </div>
-
 </template>
 
 <script>
 import BannerView from '@/views/BannerView.vue';
-import ListView from '@/views/ListView.vue';
 import AboutMiniView from '@/views/AboutMiniView.vue';
 import GameRunView from '@/views/GameRunView.vue';
 import GameFollowedView from '@/views/GameFollowedView.vue';
@@ -26,11 +29,9 @@ export default {
   name: 'mid',
   components: {
     BannerView,
-    ListView,
     AboutMiniView,
     GameRunView,
-    GameFollowedView,
-    ListView
+    GameFollowedView
   }
 }
 </script>
@@ -42,7 +43,6 @@ export default {
   margin: 0 auto;
   justify-content: center;
   padding-top: 16px;
-
 }
 .panel {
   width: 75%;
@@ -55,16 +55,24 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24px; /* 在 flex 布局中设置中间间距（现代浏览器支持） */
+  gap: 24px;
 }
-
 .list-container {
-  flex: 1; /* 占据左侧剩余空间 */
-  max-width: 60%; /* 可选：限制最大宽度 */
+  flex: 1;
+  max-width: 60%;
+}
+.info-container {
+  flex: 0 0 auto;
+  width: 35%;
 }
 
-.info-container {
-  flex: 0 0 auto; /* 不伸缩，只占自身宽度 */
-  width: 35%; /* 或者用固定宽度如 300px */
+/* 可选：添加简单的过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

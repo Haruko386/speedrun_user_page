@@ -1,13 +1,13 @@
 <template>
   <headers/>
-  <mid/>
+  <router-view/>
   <footers/>
 </template>
 
 <script>
 import headers from '@/components/header.vue'
 import footers from '@/components/footer.vue'
-import mid from '@/components/main.vue'
+import mid from '@/components/mid.vue'
 
 export default {
   name: 'App',
