@@ -1,48 +1,71 @@
 <template>
     <div class="game-run-card">
-        <div class="card-header">
-            <div class="game-title">Level RUNS</div>
-        </div>
-
-        <div class="control-switch">
-            <div class="items">
-                <el-switch v-model="flag1" size="large"
-                style="--el-switch-on-color: #B2CDD4; --el-switch-off-color: #010409" />
-            <span>Show obsolete</span>
-            </div>
-            <div class="items">
-                <el-switch v-model="flag2" size="large"
-                style="--el-switch-on-color: #B2CDD4; --el-switch-off-color: #010409" />
-            <span>Show misc.</span>
+        <div class="control-header">
+            <div class="main-title">LEVEL RUNS</div>
+            <div class="control-switch">
+                <div class="items">
+                    <el-switch v-model="flag1" size="default"
+                        style="--el-switch-on-color: #B2CDD4; --el-switch-off-color: #18222d" />
+                    <span>Show obsolete</span>
+                </div>
+                <div class="items">
+                    <el-switch v-model="flag2" size="default"
+                        style="--el-switch-on-color: #B2CDD4; --el-switch-off-color: #18222d" />
+                    <span>Show misc.</span>
+                </div>
             </div>
         </div>
 
         <div class="list">
-            <div v-for="([gameId, runs]) in groupedRuns" :key="gameId">
-                <div class="game-group-header">
-                    <img :src="getCoverUrl(gameId)" alt="cover" class="cover-mini" @error="onImgError($event)" />
-                    <div class="game-name-title">{{ getGameName(gameId) }}</div>
+            <div v-for="gameGroup in groupedRuns" :key="gameGroup.gameId" class="game-section-wrapper">
+                
+                <div class="left-cover-col">
+                    <div class="cover-wrapper">
+                         <img :src="getCoverUrl(gameGroup.gameId)" alt="cover" class="cover-img" @error="onImgError($event)" />
+                    </div>
                 </div>
 
-                <div v-for="(run, index) in runs" :key="run.id" class="run-row"
-                    :class="{ 'run-row-odd': index % 2 === 0 }">
-                    
-                    <div class="level-info">
-                        <div class="level-title">Level: {{ getLevelName(run.levelId) }}</div>
-                        <div class="category-name">{{ getCategoryName(run) }}</div>
+                <div class="right-content-col">
+                    <div class="game-header-bar">
+                        <div class="game-name-title">{{ getGameName(gameGroup.gameId) }}</div>
                     </div>
-                    
-                    <div class="run-details">
-                        <div class="time-rank">
-                            <span class="rank">{{ getRank(run.id) }}</span> 
-                            <span class="time">{{ formatTime(run.time) }}</span>
-                        </div>
-                        <div class="platform-date">
-                            <span class="platform">{{ getPlatformName(run.platformId) }}</span>
-                            <span class="date">{{ formatDateSubmitted(run.dateSubmitted) }}</span>
+
+                    <div class="runs-container">
+                        <div v-for="levelGroup in gameGroup.levels" :key="levelGroup.levelId" class="level-group">
+                            
+                            <div class="level-header-row">
+                                Level: {{ getLevelName(levelGroup.levelId) }}
+                            </div>
+
+                            <div v-for="(run, index) in levelGroup.runs" :key="run.id" class="run-row"
+                                :class="{ 'run-row-odd': index % 2 === 0 }">
+                                
+                                <div class="run-info-left">
+                                    <div class="category-main">{{ getCategoryName(run) }}</div>
+                                    <div v-if="run.values && run.values.length" class="category-sub">
+                                        {{ formatVariables(run) }}
+                                    </div>
+                                </div>
+                                
+                                <div class="run-details">
+                                    <div class="time-row">
+                                        <span v-if="run.place" class="rank-text">{{ run.place }}th</span>
+                                        <span v-if="run.time" class="time">{{ formatTime(run.time) }}</span>
+                                        <span v-else class="time">{{ formatTime(run.igt) }}</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span v-if="isObsolete(run, levelGroup.runs)" class="obsolete-tag">
+                                            <i class="el-icon-warning-outline"></i> Obsolete
+                                        </span>
+                                        <span class="platform">{{ getPlatformName(run.platformId) }}</span>
+                                        <span class="date">{{ formatDateSubmitted(run.dateSubmitted) }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -52,10 +75,9 @@
 import { ref, computed, onMounted } from 'vue'
 
 const runList = ref([])
-const flag1 = ref(false)
-const flag2 = ref(false)
+const flag1 = ref(false) // Show obsolete
+const flag2 = ref(false) // Show misc
 
-//这我没speedrun的数据库接口我只能这样写了
 const platformIdMap = {
     '8gej2n93': 'PC',
     '7vpkd93r': 'Switch',
@@ -63,12 +85,7 @@ const platformIdMap = {
     'nzelrj6m': 'Emulator',
 }
 
-const categoryNameMap = {
-    'w20ym0ok': 'Clear', // 示例 run 的 categoryId
-    'xd03q5k1': 'Any%',
-    'y65r4gw1': 'C-Side',
-    // 假设 Dash 是 Sub-Category (valueIds)
-}
+// categoryNameMap 已移除
 
 const gameIdMap = {
     '76rqmld8': 'Hollow Knight',
@@ -84,6 +101,7 @@ const gameIdMap = {
     '9do8nnk1': 'Overwatch 2',
 }
 
+// 这是一个有序对象，我们将利用 keys 的顺序来排序
 const levelIdMap = {
     'ywe5zq7w' : "Forsaken City",
     '69z2m8g9' : "Old Site",
@@ -107,63 +125,126 @@ const levelIdMap = {
     '5d7rg8q9' : "Abyss Climb"
 }
 
+// 将 levelIdMap 的 key 转为数组，用于确定顺序索引
+const levelOrder = Object.keys(levelIdMap);
+
 onMounted(async () => {
     try {
         const res = await fetch('/src_user_export.json')
         const data = await res.json()
-        // 确保只使用 verified 的 Level Runs
         runList.value = (data.runList || []).filter(run => run.verified === 1 && run.levelId) 
     } catch (e) {
         console.error('Load Json failed', e)
     }
 })
 
-// === 核心数据处理: 按游戏分组 Level Runs ===
+// === 核心数据处理逻辑 ===
 const groupedRuns = computed(() => {
-    // 1. 过滤 Level Runs (已在 onMounted 中完成，但为了确保安全，我们再次检查)
-    const levelRuns = runList.value.filter(run => run.levelId);
+    const rawRuns = runList.value;
     
-    // 2. 按 gameId 分组
-    const groups = new Map();
-    levelRuns.forEach(run => {
-        const gameId = run.gameId;
-        if (!groups.has(gameId)) {
-            groups.set(gameId, []);
+    // 1. 按 gameId 分组
+    const gameGroups = new Map();
+    rawRuns.forEach(run => {
+        if (!gameGroups.has(run.gameId)) gameGroups.set(run.gameId, []);
+        gameGroups.get(run.gameId).push(run);
+    });
+
+    const result = [];
+
+    gameGroups.forEach((runs, gameId) => {
+        // 2. 在每个游戏内，按 levelId 分组
+        const levelGroups = new Map();
+
+        runs.forEach(run => {
+            if (!levelGroups.has(run.levelId)) levelGroups.set(run.levelId, []);
+            levelGroups.get(run.levelId).push(run);
+        });
+
+        // 处理每个 Level 的 runs (排序、过滤 Obsolete)
+        const processedLevels = [];
+
+        levelGroups.forEach((levelRuns, levelId) => {
+            // 先按日期降序排列
+            levelRuns.sort((a, b) => b.dateSubmitted - a.dateSubmitted);
+
+            let finalRuns = [];
+
+            if (flag1.value) {
+                // 如果显示 Obsolete，显示所有
+                finalRuns = levelRuns;
+            } else {
+                // 如果隐藏 Obsolete，只取每个 Category 的第一名 (最新的)
+                const distinctMap = new Map();
+                levelRuns.forEach(run => {
+                    // key 设为 categoryId，如果有 sub-category 需要结合 values
+                    const key = run.categoryId; 
+                    if (!distinctMap.has(key)) {
+                        distinctMap.set(key, run);
+                    }
+                });
+                finalRuns = Array.from(distinctMap.values());
+            }
+
+            if (finalRuns.length > 0) {
+                processedLevels.push({
+                    levelId: levelId,
+                    runs: finalRuns
+                });
+            }
+        });
+
+        // 3. 对 Levels 进行严格排序 (根据 levelIdMap 的顺序)
+        processedLevels.sort((a, b) => {
+            const indexA = levelOrder.indexOf(a.levelId);
+            const indexB = levelOrder.indexOf(b.levelId);
+            
+            // 如果不在 Map 中，放到最后
+            const safeIndexA = indexA === -1 ? 9999 : indexA;
+            const safeIndexB = indexB === -1 ? 9999 : indexB;
+
+            return safeIndexA - safeIndexB;
+        });
+
+        if (processedLevels.length > 0) {
+            result.push({
+                gameId: gameId,
+                levels: processedLevels
+            });
         }
-        groups.get(gameId).push(run);
     });
 
-    // 3. (可选) 可以在这里对 runs 进行排序 (例如：按关卡ID或提交日期)
-    // 示例：按提交日期降序排列
-    groups.forEach(runs => {
-        runs.sort((a, b) => b.dateSubmitted - a.dateSubmitted);
-    });
-
-    return Array.from(groups.entries());
+    return result;
 });
 
-
 // === 辅助函数 ===
-
 const getGameName = (gameId) => gameIdMap[gameId] || 'Unknown Game';
 const getLevelName = (levelId) => levelIdMap[levelId] || 'Unknown Level';
-const getPlatformName = (platformId) => platformIdMap[platformId] || 'Unknown Platform';
-
+const getPlatformName = (platformId) => platformIdMap[platformId] || 'PC';
 const getCoverUrl = (gameId) => `https://www.speedrun.com/static/game/${gameId}/cover.png?v=a071599`;
+const onImgError = (e) => { e.target.src = 'https://www.speedrun.com/static/game/placeholder.png' }
 
-const onImgError = (e) => {
-    e.target.src = 'https://www.speedrun.com/static/game/placeholder.png'
+const getCategoryName = (run) => {
+    // 优先使用数据中的 categoryName，如果没有则显示 ID 或 placeholder
+    // 如果你的 JSON 数据里没有 'categoryName' 字段，请将其替换为实际字段名
+    if (run.categoryName) return run.categoryName;
+    
+    // 简单的 Fallback，根据 Game 特殊处理，或者直接显示 'Any%'
+    if (getGameName(run.gameId) === 'Celeste') return 'Clear'; 
+    return 'Level';
 }
 
-// 模拟获取排名。因为 runList 数据中没有排名信息，这里返回一个随机或固定的排名。
-const getRank = (runId) => {
-    // 实际应用中，这个排名需要根据 leaderboard API 获取
-    const ranks = ['1792nd', '817th', '310th', '523rd', '526th', '99th', '2nd'];
-    const hash = runId.charCodeAt(0) % ranks.length; // 简单的伪随机
-    return ranks[hash] || 'N/A';
+const formatVariables = (run) => {
+    // 模拟显示子变量，例如 "Dash (1.4.0.0)"
+    return "(1.4.0.0)"; 
 }
 
-// 格式化时间 (秒 -> 分:秒.毫秒)
+// 简单判断是否 Obsolete (仅供前端视觉标记，非严谨逻辑)
+const isObsolete = (currentRun, allRunsInLevel) => {
+    if (!flag1.value) return false; // 如果只显示最新，肯定没有 Obsolete
+    // 找到同 category 且日期更新的 run
+    return allRunsInLevel.some(r => r.categoryId === currentRun.categoryId && r.dateSubmitted > currentRun.dateSubmitted);
+}
+
 const formatTime = (timeInSeconds) => {
     if (!timeInSeconds) return 'N/A';
     const totalMs = Math.round(timeInSeconds * 1000);
@@ -171,45 +252,15 @@ const formatTime = (timeInSeconds) => {
     const totalSeconds = Math.floor(totalMs / 1000);
     const seconds = totalSeconds % 60;
     const minutes = Math.floor(totalSeconds / 60);
-
     const pad = (num, len = 2) => String(num).padStart(len, '0');
-
     return `${minutes}m ${pad(seconds)}s ${pad(ms, 3)}ms`;
 };
 
-// 格式化提交日期 (时间戳 -> YYYY-MM-DD)
 const formatDateSubmitted = (timestamp) => {
     if (!timestamp) return 'N/A';
     const d = new Date(timestamp * 1000)
-    // 格式化为 YYYY-MM-DD
     return d.toISOString().slice(0, 10)
 }
-
-// 模拟获取 Category Name / Sub-Category Name
-const getCategoryName = (run) => {
-    // 1. 尝试从 categoryId 获取
-    let name = categoryNameMap[run.categoryId] || '';
-
-    // 2. 尝试从 valueIds (子类别或变量) 获取
-    if (run.valueIds) {
-        // 假设图中的 "(1.4.0.0)" 是一个 valueId 相关的变量
-        // 假设 valueIds 列表中的第一个值是游戏版本/变量，第二个是具体描述
-        if (run.valueIds.length > 0) {
-            // 这里我们硬编码模拟图中的 Dash (1.4.0.0)
-            if (name === 'Clear' && getGameName(run.gameId) === 'Celeste') {
-                return 'Clear\n(1.4.0.0)';
-            }
-        }
-    }
-    
-    // 如果 categoryId 映射不存在，尝试使用 Level Name 作为 fallback (例如 King's Pass)
-    if (!name) {
-        return getLevelName(run.levelId);
-    }
-
-    return name;
-}
-
 </script>
 
 <style scoped>
@@ -223,161 +274,186 @@ const getCategoryName = (run) => {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.card-header {
-   padding: 8px;
+.control-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    border-bottom: 2px solid rgba(255,255,255,0.05);
 }
 
-.game-title {
+.main-title {
     font-size: 20px;
     font-weight: 800;
-    text-align: left;
-    letter-spacing: 1px;
+    color: #E6EDF3;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-    opacity: 0.95;
 }
 
 .control-switch {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 0px,8px;
+    gap: 20px;
 }
 
 .items {
     display: flex;
-    gap: 8px;
     align-items: center;
-}
-
-.items span {
-    font-size: 18px;
+    gap: 8px;
+    color: #B2CDD4;
     font-weight: 600;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
 }
 
-.list {
+/* === 游戏区块 === */
+.game-section-wrapper {
+    display: flex;
+    margin-bottom: 20px;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.left-cover-col {
+    width: 70px;
+    flex-shrink: 0;
+    margin-right: 2px;
+}
+
+.cover-wrapper {
+    position: sticky;
+    top: 10px;
+}
+
+.cover-img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    object-fit: cover;
+}
+
+.right-content-col {
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    gap: 0px; /* 移除组之间的间距，让它们看起来更紧凑 */
+    min-width: 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border-radius: 6px;
+    overflow: hidden;
 }
 
-/* === 游戏分组头部 (Game Header) === */
-.game-group-header {
-    display: flex;
-    align-items: center;
-    background-color: rgba(69, 93, 100, 0.9); /* 比 row-even 稍微亮一点的深色背景 */
-    padding: 8px 12px;
-    margin-top: 10px; /* 在游戏组之间添加一些间距 */
-    border-radius: 8px 8px 0 0;
-    font-weight: 700;
+.game-header-bar {
+    background-color: rgba(22, 27, 34, 0.95);
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .game-name-title {
-    font-size: 16px;
-    opacity: 0.95;
-    text-align: left;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
-.cover-mini {
-    width: 32px;
-    height: 32px;
-    object-fit: cover;
-    border-radius: 4px;
-    margin-right: 10px;
-    flex-shrink: 0;
+.runs-container {
+    background-color: rgba(30, 41, 51, 0.9);
 }
 
-/* === 单个 Level Run 行 (Run Row) === */
+/* === Level 分组 === */
+.level-group {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.level-group:last-child {
+    border-bottom: none;
+}
+
+/* 关卡标题行：模仿截图中的深色横条 */
+.level-header-row {
+    background-color: rgba(255, 255, 255, 0.05); /* 比 runs 背景稍亮或不同 */
+    padding: 8px 18px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #E6EDF3;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+}
+
+/* === Run 行样式 === */
 .run-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    text-align: left;
-    padding: 10px 18px; /* 左右内边距稍微大一点 */
-    transition: background 0.2s;
-    /* 移除 border-radius, 让它和 header 连起来 */
+    align-items: flex-start;
+    padding: 10px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.02); /* 很淡的分割线 */
 }
 
-/* 深色背景 */
-.run-row-odd {
-    background-color: rgba(41, 56, 61, 0.95); /* 深色部分 */
+.run-row:last-child {
+    border-bottom: none;
 }
 
 .run-row:hover {
     background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* === 关卡/类别信息 (左侧) === */
-.level-info {
-    flex: 1;
+.run-info-left {
     display: flex;
     flex-direction: column;
-    min-width: 150px;
+    gap: 2px;
 }
 
-.level-title {
+.category-main {
     font-size: 14px;
     font-weight: 600;
-    color: #B2CDD4; /* 关卡名称使用亮色 */
-    margin-bottom: 2px;
+    color: #B2CDD4; /* 亮青色 */
 }
 
-.category-name {
+.category-sub {
     font-size: 12px;
-    opacity: 0.8;
-    white-space: pre-wrap; /* 允许换行 */
+    color: #768390;
 }
 
-
-/* === 排名/时间/平台/日期 (右侧) === */
 .run-details {
-    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 4px;
-    min-width: 250px; /* 确保右侧有足够的空间 */
-}
-
-.time-rank {
-    display: flex;
-    align-items: flex-end;
-    gap: 15px;
-    font-size: 14px;
-}
-
-.rank {
-    font-weight: 500;
-    opacity: 0.7;
-    width: 60px; /* 保证排名列宽度一致 */
+    gap: 2px;
     text-align: right;
+}
+
+.time-row {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.rank-text {
+    font-size: 13px;
+    color: #E6EDF3;
+    font-weight: 700;
 }
 
 .time {
-    font-size: 16px;
-    font-weight: 700;
-    width: 120px; /* 保证时间列宽度一致 */
-    text-align: right;
-    color: #ffffff;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
 }
 
-.platform-date {
+.meta-row {
     display: flex;
-    align-items: center;
-    gap: 15px;
+    gap: 12px;
     font-size: 12px;
-    opacity: 0.6;
+    color: #768390;
+    font-weight: 500;
+    align-items: center;
+}
+
+.obsolete-tag {
+    color: #d2a8a8;
 }
 
 .platform {
-    width: 60px;
-    text-align: right;
-}
-
-.date {
-    width: 120px;
-    text-align: right;
+    text-transform: uppercase;
 }
 </style>

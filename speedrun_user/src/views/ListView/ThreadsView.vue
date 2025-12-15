@@ -3,7 +3,14 @@
         <div class="card-header">
             <div class="game-title">User stats</div>
         </div>
-
+        <div class="content">
+            <div>
+                <span class="game-title">NO THREADS</span>
+            </div>
+            <div>
+                <span>Limpid hasn't created any threads yet.</span>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -72,6 +79,10 @@ const formatDate = (timestamp) => {
     letter-spacing: 1px;
     text-transform: uppercase;
     opacity: 0.95;
+}
+
+.content {
+    padding: 32px;
 }
 
 .list {

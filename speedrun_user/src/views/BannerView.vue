@@ -22,7 +22,7 @@
                     <div class="social">
                         <button v-if="getSocialValue(5)" @click="copyToClipboard(getSocialValue(5))">
                             <img src="../assets/logo/discord.png" alt="discord" width="18" height="18" align="center" />
-                            @ {{ getSocialValue(5) }}
+                            {{ getSocialValue(5) }}
                         </button>
 
                         <!-- Twitch (networkId: 29) -->
@@ -130,8 +130,8 @@ const tabs = computed(() => [
     { name: 'Level runs', routeName: 'LevelRuns', count: getLevelRunCount() },
     { name: 'Threads', routeName: 'Threads', count: null }, // 需在 router 中定义
     { name: 'Comments', routeName: 'Comments', count: commentList.value ? commentList.value.length : 0 },
-    { name: 'Followers', routeName: 'Followers', count: 11 },
-    { name: 'Following', routeName: 'Following', count: (userFollowerList.value ? userFollowerList.value.length : 0) + (gameFollowerList.value ? gameFollowerList.value.length : 0) },
+    { name: 'Followers', routeName: 'Followers', count: userFollowerList.value.length },
+    { name: 'Following', routeName: 'Following', count: (gameFollowerList.value ? gameFollowerList.value.length : 0) },
     { name: 'Pending', routeName: 'Pending', count: null },
     { name: 'About', routeName: 'About', count: null },
 ]);
@@ -246,6 +246,7 @@ const handleTabClick = (routeName) => {
     justify-content: center;
     cursor: pointer;
     transition: background 0.2s, transform 0.15s;
+    gap: 3px;
 }
 
 .username {

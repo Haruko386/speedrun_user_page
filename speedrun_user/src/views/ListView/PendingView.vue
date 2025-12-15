@@ -1,9 +1,16 @@
 <template>
     <div class="game-run-card">
         <div class="card-header">
-            <div class="game-title">Pending</div>
+            <div class="game-title">User stats</div>
         </div>
-
+        <div class="content">
+            <div>
+                <span class="game-title">NO PENDINGS</span>
+            </div>
+            <div>
+                <span>Limpid doesn't have any runs pending verification.</span>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -66,12 +73,16 @@ const formatDate = (timestamp) => {
 }
 
 .game-title {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 800;
     text-align: left;
     letter-spacing: 1px;
     text-transform: uppercase;
     opacity: 0.95;
+}
+
+.content {
+    padding: 32px;
 }
 
 .list {

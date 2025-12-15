@@ -50,7 +50,6 @@ export default {
   margin-top: 16px;
   min-height: 400px;
   border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
