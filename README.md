@@ -19,5 +19,6 @@
 ```bash
 git clone https://github.com/Haruko386/speedrun_user_page.git # 创建
 cd speedrun_user
+npm install
 npm run serve           # 启动
 ```
