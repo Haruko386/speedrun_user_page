@@ -1,6 +1,6 @@
 <template>
   <footer class="footer-container">
-    <p>© 2025 Haruko386 ❤ Limpid. All rights reserved.</p>
+    <span>© 2025 <a href="https://haruko386.github.io">Haruko386</a> ❤ <a href="https://www.speedrun.com/users/Limpid">Limpid</a> all rights reserved.</span>
   </footer>
 </template>
 
@@ -22,5 +22,15 @@ export default {
   opacity: 0.7;
   color: #FFFFFF;
   font-size: 14px;
+}
+
+.footer-container a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer-container a:hover {
+  text-decoration: dashed;
+  opacity: 0.6;
 }
 </style>
