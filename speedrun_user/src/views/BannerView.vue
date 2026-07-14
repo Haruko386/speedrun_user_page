@@ -1,360 +1,175 @@
 <template>
-    <div class="banner-container">
-        <div class="up">
-            <div class="up-inner">
-                <div class="left-section">
-                    <div class="avatar">
-                        <img src="../assets/avatar.png" class="user-avatar">
-                    </div>
-                </div>
-
-                <div class="right-section">
-                    <div class="name">
-                        <img src="../assets/icon.webp" alt="Verified Icon" width="16" height="16">
-                        <span v-if="users" class="username">{{ users.name }}</span>
-                    </div>
-
-                    <div class="country">
-                        <img src="../assets/cn.png" alt="location" width="18" height="12">
-                        <span>China</span>
-                    </div>
-
-                    <div class="social">
-                        <button v-if="getSocialValue(5)" @click="copyToClipboard(getSocialValue(5))">
-                            <img src="../assets/logo/discord.png" alt="discord" width="18" height="18" align="center" />
-                            {{ getSocialValue(5) }}
-                        </button>
-
-                        <!-- Twitch (networkId: 29) -->
-                        <button v-if="getSocialValue(29)">
-                            <img src="../assets/logo/twitch.png" alt="twitch" width="16" height="16" align="center" />
-                            <span> {{ getSocialValue(29) }}</span>
-                        </button>
-
-                        <!-- YouTube (networkId: 32) -->
-                        <button v-if="getSocialValue(32)">
-                            <img src="../assets/logo/Youtube.png" alt="youtube" width="18" height="18" align="center" />
-                            {{ getSocialValue(32) }}
-                        </button>
-
-                        <!-- Instagram (networkId: 11) -->
-                        <button v-if="getSocialValue(11)">
-                            <img src="../assets/logo/instagram.png" alt="instagram" width="18" height="18"
-                                align="center" />
-                            {{ getSocialValue(11) }}
-                        </button>
-
-                        <!-- Bilibili (networkId: 3) -->
-                        <button v-if="getSocialValue(3)">
-                            <a :href="'https://space.bilibili.com/' + getSocialValue(3)" target="_blank" @click.stop>
-                                <img src="../assets/logo/bilibili.png" alt="bilibili" width="18" height="18"
-                                    align="center" />
-                            </a>
-                        </button>
-
-                        <!-- Website (networkId: 31) -->
-                        <button v-if="getSocialValue(31)">
-                            <a :href="getSocialValue(31)" target="_blank" @click.stop>
-                                <img src="../assets/logo/Web.png" alt="website" width="18" height="18" align="center" />
-                            </a>
-                        </button>
-                    </div>
-                </div>
-            </div>
+  <section class="profile-banner">
+    <div class="profile-hero">
+      <img class="profile-avatar" :src="profileImage" :alt="`${user.name || 'Runner'} avatar`">
+      <div class="identity">
+        <div class="name-line">
+          <img src="../assets/icon.webp" alt="Verified">
+          <h1>{{ user.name || 'Runner' }}</h1>
+          <span v-if="pronouns" class="pronouns">{{ pronouns }}</span>
         </div>
-
-        <div class="down">
-            <div class="nav-links">
-                <button v-for="tab in tabs" :key="tab.name" :class="{ 'active': isActive(tab.routeName) }"
-                    @click="handleTabClick(tab.routeName)">
-                    {{ tab.name }}
-                    <span v-if="tab.count !== null" class="badge">{{ tab.count }}</span>
-                </button>
-            </div>
-
-            <div class="nav-links" id="right-button">
-                <button>Settings</button>
-            </div>
+        <div class="country-line"><span class="flag">{{ flag }}</span>{{ location }}</div>
+        <div class="social-list" aria-label="Social links">
+          <component
+            :is="social.href ? 'a' : 'button'"
+            v-for="social in visibleSocials"
+            :key="social.id"
+            class="social-chip"
+            :href="social.href || undefined"
+            :target="social.href ? '_blank' : undefined"
+            :rel="social.href ? 'noreferrer' : undefined"
+            :title="social.label"
+            @click="social.copy ? copySocial(social.value) : undefined"
+          >
+            <img :src="social.icon" :alt="social.label">
+            <span v-if="social.showValue">{{ social.value }}</span>
+            <b v-if="social.verified && social.showValue" aria-label="Verified">✓</b>
+          </component>
+          <span v-if="copyMessage" class="copy-message">Copied</span>
         </div>
+      </div>
     </div>
+
+    <div class="profile-nav">
+      <nav aria-label="Profile sections">
+        <button
+          v-for="tab in tabs"
+          :key="tab.routeName"
+          :class="{ active: route.name === tab.routeName }"
+          @click="router.push({ name: tab.routeName })"
+        >
+          {{ tab.label }}
+          <span v-if="tab.count" class="badge">{{ tab.count }}</span>
+        </button>
+      </nav>
+      <button class="settings-button" @click="$emit('open-settings')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.5a7 7 0 0 0-.7-1.7l1.1-1.8-2.1-2.1-1.8 1.1a7 7 0 0 0-1.7-.7l-.5-2h-3l-.5 2a7 7 0 0 0-1.7.7L4.3 4.4 2.2 6.5l1.1 1.8a7 7 0 0 0-.7 1.7l-2 .5v3l2 .5a7 7 0 0 0 .7 1.7l-1.1 1.8 2.1 2.1 1.8-1.1a7 7 0 0 0 1.7.7l.5 2h3l.5-2a7 7 0 0 0 1.7-.7l1.8 1.1 2.1-2.1-1.1-1.8a7 7 0 0 0 .7-1.7z"/></svg>
+        Settings
+      </button>
+    </div>
+  </section>
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { avatarUrl, countryFlag, countryName } from '@/data/catalog'
+import fallbackAvatar from '../assets/avatar.png'
+import discordIcon from '../assets/logo/discord.png'
+import twitchIcon from '../assets/logo/twitch.png'
+import youtubeIcon from '../assets/logo/Youtube.png'
+import instagramIcon from '../assets/logo/instagram.png'
+import bilibiliIcon from '../assets/logo/bilibili.png'
+import websiteIcon from '../assets/logo/Web.png'
 
-const router = useRouter(); // 用于执行跳转
-const route = useRoute();   // 用于获取当前路由状态
+defineEmits(['open-settings'])
 
-const users = ref(null);
-const userSettings = ref(null);
-const userSocialConnectionList = ref(null);
-const runList = ref([]);
-const userFollowerList = ref([]);
-const commentList = ref([]);
-const gameFollowerList = ref([]);
+const store = useStore()
+const router = useRouter()
+const route = useRoute()
+const copyMessage = ref(false)
 
-onMounted(async () => {
-    try {
-        const response = await fetch('/src_user_export.json');
-        const data = await response.json();
-        users.value = data.user;
-        userSettings.value = data.userSettings;
-        userSocialConnectionList.value = data.userSocialConnectionList;
-        runList.value = data.runList;
-        userFollowerList.value = data.userFollowerList;
-        commentList.value = data.commentList;
-        gameFollowerList.value = data.gameFollowerList;
-    } catch (error) {
-        console.error('Load json failed:', error);
-    }
-});
+const user = computed(() => store.getters.user)
+const profileImage = computed(() => {
+  if (store.getters.replicaSettings.avatarUrl) return store.getters.replicaSettings.avatarUrl
+  return user.value.id && user.value.id !== 'jonk35n8' ? avatarUrl(user.value.id) : fallbackAvatar
+})
+const pronouns = computed(() => (user.value.pronouns || []).join(', '))
+const flag = computed(() => countryFlag(user.value.areaId))
+const location = computed(() => countryName(user.value.areaId))
 
-const getAllVerifiedRunCount = () => {
-    return runList.value.filter(run => run.verified == 1).length;
-};
-
-const getLevelRunCount = () => {
-    return runList.value.filter(run => run.levelId && run.verified == 1).length;
-};
-
-const getSocialValue = (networkId) => {
-    if (!userSocialConnectionList.value) return null;
-    const connection = userSocialConnectionList.value.find(conn => conn.networkId === networkId);
-    return connection ? connection.value : null;
-}
-const copyToClipboard = (text) => { navigator.clipboard.writeText(text); };
+const socialById = computed(() => Object.fromEntries(store.getters.socials.map(item => [Number(item.networkId), item])))
+const socialDefinitions = [
+  { id: 5, label: 'Discord', icon: discordIcon, showValue: true, copy: true },
+  { id: 29, label: 'Twitch', icon: twitchIcon, showValue: true, prefix: 'https://www.twitch.tv/' },
+  { id: 32, label: 'YouTube', icon: youtubeIcon, prefix: 'https://www.youtube.com/user/' },
+  { id: 11, label: 'Instagram', icon: instagramIcon, prefix: 'https://www.instagram.com/' },
+  { id: 3, label: 'Bilibili', icon: bilibiliIcon, prefix: 'https://space.bilibili.com/' },
+  { id: 31, label: 'Website', icon: websiteIcon, direct: true }
+]
+const visibleSocials = computed(() => socialDefinitions.flatMap(definition => {
+  const connection = socialById.value[definition.id]
+  if (!connection?.value) return []
+  return [{
+    ...definition,
+    value: connection.value,
+    verified: connection.verified,
+    href: definition.copy ? '' : (definition.direct ? connection.value : `${definition.prefix}${connection.value}`)
+  }]
+}))
 
 const tabs = computed(() => [
-    { name: 'Full game runs', routeName: 'FullGameRuns', count: getAllVerifiedRunCount() - getLevelRunCount() },
-    { name: 'Level runs', routeName: 'LevelRuns', count: getLevelRunCount() },
-    { name: 'Threads', routeName: 'Threads', count: null }, // 需在 router 中定义
-    { name: 'Comments', routeName: 'Comments', count: commentList.value ? commentList.value.length : 0 },
-    { name: 'Followers', routeName: 'Followers', count: userFollowerList.value.length },
-    { name: 'Following', routeName: 'Following', count: (gameFollowerList.value ? gameFollowerList.value.length : 0) },
-    { name: 'Pending', routeName: 'Pending', count: null },
-    { name: 'About', routeName: 'About', count: null },
-]);
+  { label: 'Full game runs', routeName: 'FullGameRuns', count: store.getters.fullGameRuns.length },
+  { label: 'Level runs', routeName: 'LevelRuns', count: store.getters.levelRuns.length },
+  { label: 'Threads', routeName: 'Threads', count: store.getters.threads.length },
+  { label: 'Comments', routeName: 'Comments', count: store.getters.comments.length },
+  { label: 'Followers', routeName: 'Followers', count: store.getters.followers.length },
+  { label: 'Following', routeName: 'Following', count: store.getters.followers.length },
+  { label: 'Pending', routeName: 'Pending', count: store.getters.pendingRuns.length },
+  { label: 'About', routeName: 'About', count: 0 }
+])
 
-const isActive = (routeName) => {
-    // 如果没有配置routeName（暂时不可点的），则不激活
-    if (!routeName) return false;
-    // 判断当前路由的名字是否匹配
-    return route.name === routeName;
-};
-
-// 处理点击
-const handleTabClick = (routeName) => {
-    if (routeName) {
-        router.push({ name: routeName });
-    } else {
-        // 如果还没有配置路由页面，暂时什么都不做或弹出提示
-        console.log("No route defined for this tab yet");
-    }
-};
+const copySocial = async (value) => {
+  try {
+    await navigator.clipboard.writeText(value)
+    copyMessage.value = true
+    window.setTimeout(() => { copyMessage.value = false }, 1300)
+  } catch (_) { /* Clipboard can be unavailable on non-HTTPS previews. */ }
+}
 </script>
 
 <style scoped>
-.banner-container {
-    width: 100%;
-    overflow: hidden;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+.profile-banner {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+  color: var(--text-main);
 }
-
-.up {
-    height: 145px;
-    background: linear-gradient(135deg, rgba(75, 100, 106, 0.85), rgba(58, 79, 85, 0.9));
-    width: 100%;
-    position: relative;
+.profile-hero {
+  min-height: 149px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 18px 28px;
+  background: linear-gradient(110deg, rgba(67,94,102,.9), rgba(65,91,99,.78));
 }
+.profile-avatar { width: 92px; height: 92px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; border: 2px solid rgba(245,251,252,.9); box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.identity { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.name-line { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.name-line > img { width: 16px; height: 16px; object-fit: contain; }
+h1 { margin: 0; font-size: 24px; line-height: 1.25; font-weight: 750; background: linear-gradient(90deg,#44bbee,#ffb3f3); background-clip: text; -webkit-background-clip: text; color: transparent; }
+.pronouns { padding: 3px 7px; border-radius: 12px; background: rgba(255,255,255,.1); color: var(--text-muted); font-size: 11px; }
+.country-line { display: flex; align-items: center; gap: 7px; margin-top: 10px; color: #f2f6f7; font-size: 14px; font-weight: 650; }
+.flag { font-size: 16px; line-height: 1; }
+.social-list { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 10px; }
+.social-chip { height: 27px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; border: 0; border-radius: 5px; background: rgba(204,224,229,.13); color: #d6e4e7; text-decoration: none; font-size: 11px; font-weight: 650; cursor: pointer; }
+.social-chip:hover { background: rgba(224,239,242,.22); color: white; }
+.social-chip img { width: 16px; height: 16px; object-fit: contain; filter: grayscale(.15); }
+.social-chip b { width: 13px; height: 13px; display: inline-grid; place-items: center; border-radius: 50%; background: #b9d1d6; color: #45616a; font-size: 9px; }
+.copy-message { color: #dbe9ec; font-size: 11px; }
+.profile-nav { height: 51px; display: flex; align-items: stretch; background: rgba(39,60,67,.93); }
+.profile-nav nav { min-width: 0; display: flex; overflow-x: auto; scrollbar-width: none; }
+.profile-nav nav::-webkit-scrollbar { display: none; }
+.profile-nav button { position: relative; flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 0 16px; border: 0; background: transparent; color: #bfd0d4; font-size: 13px; font-weight: 700; cursor: pointer; }
+.profile-nav button:hover { color: white; background: rgba(255,255,255,.04); }
+.profile-nav nav button::after { content: ''; position: absolute; height: 2px; right: 8px; bottom: 0; left: 8px; background: white; transform: scaleX(0); transition: transform .18s ease; }
+.profile-nav nav button.active { color: white; }
+.profile-nav nav button.active::after { transform: scaleX(1); }
+.badge { min-width: 21px; height: 21px; padding: 0 6px; display: inline-grid; place-items: center; border-radius: 12px; background: rgba(193,215,221,.17); color: #e5eff1; font-size: 10px; }
+.settings-button { margin-left: auto; border-left: 1px solid rgba(255,255,255,.05) !important; }
+.settings-button svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 
-.up-inner {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    padding: 16px 24px;
-    box-sizing: border-box;
-}
-
-.left-section {
-    flex: 0 0 110px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.avatar {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid rgba(255, 255, 255, 0.9);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-}
-
-.user-avatar {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.right-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-left: 20px;
-    color: white;
-}
-
-.name {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-
-.country {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 16px;
-    opacity: 0.9;
-    margin-bottom: 4px;
-}
-
-.social {
-    font-size: 14px;
-    opacity: 0.85;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.social button {
-    width: auto;
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.14);
-    border: none;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.15s;
-    gap: 3px;
-}
-
-.username {
-    font-size: 26px;
-    background: linear-gradient(to right, #44BBEE, #FFB3F3);
-    -webkit-background-clip: text;
-    color: transparent;
-}
-
-.down {
-    height: 48px;
-    background-color: rgba(41, 56, 61, 0.95);
-    width: auto;
-    display: flex;
-    align-items: stretch;
-    padding: 0 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.nav-links {
-    display: flex;
-    gap: 0;
-    height: 100%;
-}
-
-.nav-links button {
-    position: relative;
-    height: 100%;
-    display: flex;
-    align-items: center;
-
-    color: #C1D7DD;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: none;
-    border: none;
-    padding: 0 16px;
-    margin: 0;
-    outline: none;
-    text-decoration: none;
-}
-
-.badge {
-    background-color: rgba(255, 255, 255, 0.15);
-    color: #fff;
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 10px;
-    margin-left: 6px;
-    transition: background-color 0.2s;
-}
-
-.nav-links button:hover {
-    color: white;
-    background-color: rgba(255, 255, 255, 0.05);
-    /* 悬停时增加一点微弱的背景色 */
-    text-decoration: none;
-    /* 移除旧的下划线 */
-}
-
-.nav-links button:hover .badge {
-    background-color: rgba(255, 255, 255, 0.25);
-}
-
-/* --- 激活 (Active/Current) 状态 --- */
-.nav-links button.active {
-    color: white;
-    /* 不一定要背景色，但可以加深一点 */
-}
-
-.nav-links button.active .badge {
-    background-color: #5d757d;
-    /* 激活时徽章颜色加深 */
-}
-
-/* --- 底部横线动画 (核心逻辑) --- */
-.nav-links button::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    /* 紧贴底部 */
-    left: 0;
-    width: 100%;
-    height: 3px;
-    /* 横线高度 */
-    background-color: white;
-    /* 横线颜色 */
-
-    /* 动画效果：默认缩放为0 (隐藏) */
-    transform: scaleX(0);
-    transform-origin: center;
-    /* 从中间向两边展开 */
-    transition: transform 0.25s ease-out;
-    opacity: 0;
-}
-
-/* 当 active 类存在时，或者 hover 时，显示横线 */
-.nav-links button.active::after,
-.nav-links button:hover::after {
-    transform: scaleX(1);
-    /* 展开 */
-    opacity: 1;
-}
-
-/* 右侧设置按钮单独处理 */
-#right-button {
-    margin-left: auto;
+@media (max-width: 760px) {
+  .profile-hero { min-height: 130px; padding: 16px; gap: 15px; }
+  .profile-avatar { width: 74px; height: 74px; }
+  h1 { font-size: 21px; }
+  .social-chip span,.social-chip b { display: none; }
+  .social-chip { width: 28px; padding: 0; justify-content: center; }
+  .profile-nav { height: 48px; }
+  .profile-nav button { padding: 0 12px; font-size: 12px; }
+  .settings-button { padding: 0 12px !important; font-size: 0 !important; }
 }
 </style>

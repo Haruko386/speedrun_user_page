@@ -1,270 +1,77 @@
 <template>
-    <div class="stats-card">
-        <!-- Title -->
-        <div class="stats-title">USER STATS</div>
+  <section class="stats-card">
+    <header><h2>USER STATS</h2></header>
 
-        <!-- Speedrun Stats -->
-        <div class="section-title">SPEEDRUN STATS</div>
-        <div class="stats-grid">
-            <div class="stats-item">
-                <div class="label">Total runs</div>
-                <div class="value">{{ totalRuns }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Full game runs</div>
-                <div class="value">{{ totalRuns - levelRuns }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Level runs</div>
-                <div class="value">{{ levelRuns }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Challenge runs</div>
-                <div class="value">{{ challengeRuns }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Pending runs</div>
-                <div class="value">{{ pendingRuns }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Total run time</div>
-                <div class="value">{{ totalRunTime }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Unique games</div>
-                <div class="value">{{ uniqueGames }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Unique categories</div>
-                <div class="value">{{ uniqueCategories }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Unique levels</div>
-                <div class="value">{{ uniqueLevels }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">First run</div>
-                <div class="value">{{ firstRun }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Last run</div>
-                <div class="value">{{ lastRun }}</div>
-            </div>
+    <div class="stats-content">
+      <h3>Speedrun stats</h3>
+      <div class="stats-grid">
+        <div v-for="item in speedrunStats" :key="item.label" class="stat">
+          <span>{{ item.label }}</span><strong>{{ item.value }}</strong>
         </div>
+      </div>
 
-        <!-- Community Stats -->
-        <div class="section-title">COMMUNITY STATS</div>
-        <div class="stats-grid">
-            <div class="stats-item">
-                <div class="label">Joined</div>
-                <div class="value" v-if="users">{{ formatDate2Sec(users.signupDate) }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Last visit</div>
-                <div class="value"v-if="users">{{ formatDate2Sec(users.touchDate) }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Followers</div>
-                <div class="value">{{ followers }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Games followed</div>
-                <div class="value" v-if="gameFollowerList">{{ gameFollowerList.length }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Users followed</div>
-                <div class="value" v-if="userFollowerList">{{ userFollowerList.length }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Threads created</div>
-                <div class="value">{{ threadsCreated }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Guides created</div>
-                <div class="value">{{ guidesCreated }}</div>
-            </div>
-
-            <div class="stats-item">
-                <div class="label">Resources created</div>
-                <div class="value">{{ resourcesCreated }}</div>
-            </div>
+      <h3>Community stats</h3>
+      <div class="stats-grid">
+        <div v-for="item in communityStats" :key="item.label" class="stat">
+          <span>{{ item.label }}</span><strong>{{ item.value }}</strong>
         </div>
+      </div>
 
+      <h3>About {{ user.name || 'runner' }}</h3>
+      <p class="bio">{{ settings.bio || `${user.name || 'This runner'} hasn't added a bio yet.` }}</p>
     </div>
+  </section>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { formatDate, formatRunTime } from '@/data/catalog'
 
-const getAllVerifiedRunCount = () => {
-    return runList.value.filter(run => run.verified == 1).length;
-};
+const store = useStore()
+const user = computed(() => store.getters.user)
+const settings = computed(() => store.getters.userSettings)
+const verified = computed(() => store.getters.verifiedRuns)
 
-const getLevelRunCount = () => {
-    return runList.value.filter(run => run.levelId && run.verified == 1).length;
-};
+const speedrunStats = computed(() => {
+  const runs = verified.value
+  const dates = runs.map(run => Number(run.date || run.dateSubmitted || 0)).filter(Boolean).sort((a,b) => a-b)
+  const totalTime = runs.reduce((sum, run) => sum + Number(run.time ?? run.igt ?? 0), 0)
+  return [
+    { label: 'Total runs', value: runs.length },
+    { label: 'Full game runs', value: store.getters.fullGameRuns.length },
+    { label: 'Level runs', value: store.getters.levelRuns.length },
+    { label: 'Pending runs', value: store.getters.pendingRuns.length },
+    { label: 'Total run time', value: formatRunTime(totalTime) },
+    { label: 'Unique games', value: new Set(runs.map(run => run.gameId).filter(Boolean)).size },
+    { label: 'Unique categories', value: new Set(runs.map(run => run.categoryId).filter(Boolean)).size },
+    { label: 'Unique levels', value: new Set(runs.map(run => run.levelId).filter(Boolean)).size },
+    { label: 'First run', value: formatDate(dates[0]) },
+    { label: 'Last run', value: formatDate(dates.at(-1)) }
+  ]
+})
 
-const users = ref(null);
-const userSettings = ref(null);
-const userSocialConnectionList = ref(null);
-const runList = ref([]);
-const userFollowerList = ref([]);
-const commentList = ref([]);
-const gameFollowerList = ref([]);
-
-const totalRuns = computed(() => getAllVerifiedRunCount())
-const levelRuns = computed(() => getLevelRunCount())
-const challengeRuns = 0
-const pendingRuns = 0
-const totalRunTime = ref("11h 19m 07s")
-const uniqueGames = ref(0)
-const uniqueCategories = ref(0)
-const uniqueLevels = ref(0)
-const firstRun = ref("-")
-const lastRun = ref("-")
-
-const followers = 11
-const threadsCreated = 0
-const guidesCreated = 0
-const resourcesCreated = 0
-
-function formatDuration(seconds) {
-  if (seconds < 0) return '0s';
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  let result = '';
-  if (hours > 0) {
-    result += `${hours}h `;
-  }
-  if (minutes > 0) {
-    result += `${minutes}m `;
-  }
-  if (secs > 0 || (hours === 0 && minutes === 0)) {
-    result += `${secs}s`;
-  }
-  return result.trim();
-}
-
-const getInfo = () => {
-    var time = 0.0, dateFirst = 0x3f3f3f3f3f, dateLast = 0;
-    var games = {}, categories = {}, levels = {}
-    for (const run of runList.value) {
-        if (run.verified != 1)continue;
-        time += run.igt ? run.igt : run.time;
-        dateFirst = Math.min(dateFirst, run.dateSubmitted);
-        dateLast = Math.max(dateLast, run.dateSubmitted);
-        games[run.gameId]++;
-        categories[run.categoryId]++;
-        levels[run.levelId]++;
-    }
-    console.log(time);
-    console.log(formatDuration(time));
-    totalRunTime.value = formatDuration(time);
-    uniqueGames.value = Object.keys(games).length;
-    uniqueCategories.value = Object.keys(categories).length;
-    uniqueLevels.value = Object.keys(levels).length;
-    firstRun.value = formatDate2Sec(dateFirst);
-    lastRun.value = formatDate2Sec(dateLast);
-}
-
-onMounted(async () => {
-    try {
-        const response = await fetch('/src_user_export.json');
-        const data = await response.json();
-        users.value = data.user;
-        userSettings.value = data.userSettings;
-        userSocialConnectionList.value = data.userSocialConnectionList;
-        runList.value = data.runList;
-        userFollowerList.value = data.userFollowerList;
-        commentList.value = data.commentList;
-        gameFollowerList.value = data.gameFollowerList;
-    } catch (error) {
-        console.error('Load json failed:', error);
-    }
-    getInfo();
-});
-
-const formatDate2Sec = (timestamp) => {
-    if (!timestamp) return '-';
-    const d = new Date(timestamp * 1000);
-    const pad = (n) => n.toString().padStart(2, '0');
-    const year = d.getFullYear();
-    const month = pad(d.getMonth() + 1);
-    const day = pad(d.getDate());
-    const hour = pad(d.getHours());
-    const min = pad(d.getMinutes());
-    const sec = pad(d.getSeconds());
-    return `${year}-${month}-${day} ${hour}:${min}:${sec}`;
-};
+const communityStats = computed(() => [
+  { label: 'Joined', value: formatDate(user.value.signupDate) },
+  { label: 'Last visit', value: formatDate(user.value.touchDate || user.value.onlineDate) },
+  { label: 'Followers', value: store.getters.followers.length },
+  { label: 'Games followed', value: store.getters.followedGames.length },
+  { label: 'Comments', value: store.getters.comments.length },
+  { label: 'Threads created', value: store.getters.threads.length }
+])
 </script>
 
 <style scoped>
-.stats-card {
-    background: linear-gradient(135deg, rgba(57, 74, 82, 0.85), rgba(38, 54, 61, 0.9));
-    color: #fff;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    width: 100%;
-    backdrop-filter: blur(6px);
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-}
-
-.stats-title {
-    font-size: 18px;
-    font-weight: 900;
-    text-transform: uppercase;
-    opacity: 0.95;
-    margin-bottom: 10px;
-}
-
-.section-title {
-    font-size: 14px;
-    margin-top: 18px;
-    margin-bottom: 6px;
-    opacity: 0.8;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px 12px;
-    margin-bottom: 10px;
-}
-
-.stats-item {
-    background: rgba(34, 46, 51, 0.85);
-    padding: 10px 12px;
-    border-radius: 8px;
-}
-
-.label {
-    font-size: 12px;
-    opacity: 0.75;
-}
-
-.value {
-    font-size: 17px;
-    font-weight: 800;
-    margin-top: 2px;
-}
+.stats-card { overflow: hidden; border-radius: 7px; background: var(--panel-bg); box-shadow: var(--shadow); color: var(--text-main); text-align: left; }
+header { padding: 14px 17px; border-bottom: 1px solid var(--panel-line); }
+h2 { margin: 0; font-size: 14px; font-weight: 850; letter-spacing: .4px; }
+.stats-content { padding: 16px 17px 22px; }
+h3 { margin: 4px 0 10px; color: #dce9eb; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+h3:not(:first-child) { margin-top: 24px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.stat { min-height: 62px; display: flex; flex-direction: column; justify-content: center; gap: 5px; padding: 10px 12px; border-radius: 5px; background: rgba(35,56,63,.55); }
+.stat span { color: #9fb5bb; font-size: 10px; }
+.stat strong { color: #f0f6f7; font-size: 14px; font-variant-numeric: tabular-nums; }
+.bio { margin: 0; padding: 14px; border-left: 3px solid rgba(171,205,213,.6); background: rgba(35,56,63,.35); color: #d8e5e7; font-size: 12px; line-height: 1.6; }
+@media (max-width:600px){ .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
 </style>

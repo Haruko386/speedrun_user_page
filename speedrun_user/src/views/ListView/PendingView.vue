@@ -1,155 +1,27 @@
 <template>
-    <div class="game-run-card">
-        <div class="card-header">
-            <div class="game-title">User stats</div>
-        </div>
-        <div class="content">
-            <div>
-                <span class="game-title">NO PENDINGS</span>
-            </div>
-            <div>
-                <span>Limpid doesn't have any runs pending verification.</span>
-            </div>
-        </div>
+  <section class="tab-card">
+    <header><h2>PENDING RUNS</h2></header>
+    <div v-if="pending.length" class="pending-list">
+      <article v-for="run in pending" :key="run.id">
+        <div><strong>{{ gameName(run.gameId) }}</strong><span>{{ categoryName(run.categoryId) }}</span></div>
+        <div><strong>{{ formatRunTime(run.time ?? run.igt) }}</strong><span>{{ formatDate(run.dateSubmitted || run.date) }}</span></div>
+      </article>
     </div>
+    <div v-else class="empty-state"><h3>NO PENDING RUNS</h3><p>{{ user.name || 'This runner' }} doesn't have any runs pending verification.</p></div>
+  </section>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-
-const users = ref(null);
-const userSettings = ref(null);
-const userSocialConnectionList = ref(null);
-const runList = ref([]);
-const userFollowerList = ref([]);
-const commentList = ref([]);
-const gameFollowerList = ref([]);
-
-onMounted(async () => {
-    try {
-        const response = await fetch('/src_user_export.json');
-        const data = await response.json();
-        users.value = data.user;
-        userSettings.value = data.userSettings;
-        userSocialConnectionList.value = data.userSocialConnectionList;
-        runList.value = data.runList;
-        userFollowerList.value = data.userFollowerList;
-        commentList.value = data.commentList;
-        gameFollowerList.value = data.gameFollowerList;
-    } catch (error) {
-        console.error('Load json failed:', error);
-    }
-});
-
-const getAllVerifiedRunCount = () => {
-    return runList.value.filter(run => run.verified == 1).length;
-};
-
-const getLevelRunCount = () => {
-    return runList.value.filter(run => run.levelId && run.verified == 1).length;
-};
-
-const formatDate = (timestamp) => {
-    if (!timestamp) return '-'
-    const d = new Date(timestamp * 1000)
-    return d.toISOString().slice(0, 10).replace(/-/g, '-')
-}
-
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { formatDate, formatRunTime } from '@/data/catalog'
+const store=useStore()
+const user=computed(()=>store.getters.user)
+const pending=computed(()=>store.getters.pendingRuns)
+const gameName=id=>store.getters.gameName(id)
+const categoryName=id=>store.getters.categoryName(id)
 </script>
 
 <style scoped>
-.game-run-card {
-    background: linear-gradient(135deg, rgba(75, 100, 106, 0.85), rgba(58, 79, 85, 0.9));
-    color: #fff;
-    border-radius: 12px;
-    padding: 0px 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    width: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.card-header {
-    padding: 8px;
-}
-
-.game-title {
-    font-size: 16px;
-    font-weight: 800;
-    text-align: left;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    opacity: 0.95;
-}
-
-.content {
-    padding: 32px;
-}
-
-.list {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.row {
-    display: flex;
-    align-items: center;
-    text-align: left;
-    padding: 10px 12px;
-    border-radius: 8px;
-    transition: background 0.2s;
-}
-
-.row-even {
-    background-color: rgba(41, 56, 61, 0.95);
-}
-
-.row:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-}
-
-.cover {
-    width: 48px;
-    height: 64px;
-    object-fit: cover;
-    border-radius: 6px;
-    margin-right: 14px;
-    flex-shrink: 0;
-}
-
-.info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.name {
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.last-run {
-    font-size: 12px;
-    opacity: 0.7;
-}
-
-.count {
-    font-size: 18px;
-    font-weight: 700;
-    min-width: 70px;
-}
-
-.count span {
-    display: flex;
-    text-align: center;
-    flex-direction: column;
-}
-
-.suffix {
-    font-size: 12px;
-    font-weight: normal;
-    opacity: 0.7;
-    margin-left: 4px;
-}
+.tab-card{overflow:hidden;border-radius:7px;color:var(--text-main);background:var(--panel-bg);box-shadow:var(--shadow);text-align:left}header{padding:14px 17px;border-bottom:1px solid var(--panel-line)}h2{margin:0;font-size:14px;font-weight:850;letter-spacing:.4px}.pending-list{padding:8px 17px 16px}.pending-list article{display:flex;justify-content:space-between;gap:15px;padding:13px;border-bottom:1px solid var(--panel-line)}.pending-list article>div{display:flex;flex-direction:column;gap:3px}.pending-list article>div:last-child{text-align:right}.pending-list strong{font-size:12px}.pending-list span{color:var(--text-muted);font-size:10px}.empty-state{padding:55px 20px 62px;text-align:center}.empty-state h3{margin:0 0 7px;font-size:15px}.empty-state p{margin:0;color:var(--text-muted);font-size:12px}
 </style>

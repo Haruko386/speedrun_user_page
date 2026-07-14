@@ -1,387 +1,272 @@
 <template>
-    <header class="container">
-        <div class="options">
-            <div class="logo">
-                <img src="../assets/logo_speedrun.png" alt="Speedrun Logo" width="auto" height="55">
-            </div>
-            <div class="nav">
-                <button>Games</button>
-                <button>Challanges</button>
-                <button>Forums</button>
-                <button>Help</button>
-            </div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="https://www.speedrun.com" target="_blank" rel="noreferrer">
+        <img src="../assets/logo_speedrun.png" alt="Speedrun.com">
+      </a>
 
-            <div class="user-menu-wrapper">
-                <div class="search-container">
-                    <svg class="search-icon" viewBox="0 0 24 24">
-                        <path d="M21.71 20.29l-5.01-5.01C17.54 13.68 18 11.91 18 10c0-4.41-3.59-8-8-8S2 5.59 2 10s3.59 8 8 8c1.91 0 3.68-.46 5.28-1.3l5.01 5.01c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41zM10 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
-                    </svg>
-                    <input 
-                        type="text" 
-                        placeholder="Search page..." 
-                        v-model="searchText"
-                        @input="handleSearch"
-                    >
-                </div>
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="https://www.speedrun.com/games" target="_blank" rel="noreferrer">
+          Games
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg>
+        </a>
+        <a href="https://www.speedrun.com/challenges" target="_blank" rel="noreferrer">Challenges</a>
+        <a href="https://www.speedrun.com/forums" target="_blank" rel="noreferrer">Forums</a>
+        <a href="https://www.speedrun.com/support" target="_blank" rel="noreferrer">Help</a>
+        <button class="more-button" aria-label="More options">⋮</button>
+      </nav>
 
-                <div class="user-avatar-trigger" @click="toggleDropdown">
-                    <img src="../assets/avatar.png" alt="User Avatar" class="user-avatar">
-                    <svg viewBox="0 0 20 20" fill="currentColor" class="chevron-down">
-                        <path fill-rule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
+      <div class="header-actions">
+        <a class="supporter" href="https://www.speedrun.com/supporter" target="_blank" rel="noreferrer">
+          <span>🖼️</span> SUPPORTER
+        </a>
 
-                <transition name="fade">
-                    <div class="user-dropdown" v-if="showDropdown">
-                        <div class="dropdown-item user-profile">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M12 4a4 4 0 100 8 4 4 0 000-8zm-2 9a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            <span class="username">Limpid</span>
-                        </div>
-                        <div class="dropdown-item">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M4 12c0 4.418 3.582 8 8 8s8-3.582 8-8-3.582-8-8-8-8 3.582-8 8zm9 0V7h2v5h3l-4 4-4-4h3z" />
-                            </svg>
-                            Support tickets
-                        </div>
-                        <div class="dropdown-item">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M19.95 11.23c-.15-.49-.49-.89-.95-1.07s-.98-.22-1.45-.06l-1.87.57a.5.5 0 00-.39.46v2.54c0 .32.22.6.53.66l1.87.57c.47.16.96.11 1.45-.06s.8-.58.95-1.07l.7-2.34a.5.5 0 00-.05-.44l-.7-.03zM12 4a8 8 0 100 16A8 8 0 0012 4zm0 2c3.314 0 6 2.686 6 6s-2.686 6-6 6-6-2.686-6-6 2.686-6 6-6z" />
-                            </svg>
-                            Settings
-                        </div>
-                        <div class="dropdown-item">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M12 14.75l-4.75 2.5 1.25-5.35-4.1-3.6 5.4-.5 2.25-5.05 2.25 5.05 5.4.5-4.1 3.6 1.25 5.35L12 14.75z" />
-                            </svg>
-                            Supporter
-                        </div>
-                        <div class="dropdown-item sign-out">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M16 17v-3h-4v-2h4V9l5 4-5 4zm-9 3a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v1h-2V6H7v12h8v-1h2v1a2 2 0 01-2 2H7z" />
-                            </svg>
-                            Sign out
-                        </div>
-                    </div>
-                </transition>
+        <label class="search-box">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input v-model="searchText" type="search" placeholder="Search for anything..." @input="handleSearch">
+          <kbd>/</kbd>
+        </label>
+
+        <button class="icon-button" aria-label="Messages">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+        </button>
+        <button class="icon-button" aria-label="Notifications">
+          <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M10 20h4"/></svg>
+        </button>
+
+        <div ref="menuRoot" class="user-menu">
+          <button class="user-trigger" :aria-expanded="showDropdown" aria-label="Open user menu" @click="showDropdown = !showDropdown">
+            <img :src="profileImage" alt="User avatar">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg>
+          </button>
+          <transition name="menu-fade">
+            <div v-if="showDropdown" class="user-dropdown">
+              <div class="profile-row">
+                <img :src="profileImage" alt="">
+                <div><strong>{{ user.name || 'Runner' }}</strong><small>View profile</small></div>
+              </div>
+              <a href="https://www.speedrun.com/support/tickets" target="_blank" rel="noreferrer">Support tickets</a>
+              <button @click="openSettings">Settings</button>
+              <a href="https://www.speedrun.com/supporter" target="_blank" rel="noreferrer">Supporter</a>
+              <button class="sign-out">Sign out</button>
             </div>
+          </transition>
         </div>
-    </header>
+      </div>
+    </div>
+  </header>
 </template>
 
-<script>
-import { ref } from 'vue';
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useStore } from 'vuex'
+import fallbackAvatar from '../assets/avatar.png'
+import { avatarUrl } from '@/data/catalog'
 
-export default {
-    name: 'headers',
-    setup() {
-        const showDropdown = ref(false);
-        const searchText = ref('');
+const emit = defineEmits(['open-settings'])
+const store = useStore()
+const showDropdown = ref(false)
+const searchText = ref('')
+const menuRoot = ref(null)
 
-        const toggleDropdown = () => {
-            showDropdown.value = !showDropdown.value;
-        };
+const user = computed(() => store.getters.user)
+const profileImage = computed(() => {
+  if (store.getters.replicaSettings.avatarUrl) return store.getters.replicaSettings.avatarUrl
+  return user.value.id && user.value.id !== 'jonk35n8' ? avatarUrl(user.value.id) : fallbackAvatar
+})
 
-        const handleSearch = () => {
-
-            clearHighlights();
-
-            const query = searchText.value.trim();
-            if (!query) return;
-
-            highlightTextInNode(document.body, query);
-        };
-
-        const clearHighlights = () => {
-            const highlights = document.querySelectorAll('.speedrun-highlight');
-            highlights.forEach(span => {
-                const parent = span.parentNode;
-                parent.replaceChild(document.createTextNode(span.textContent), span);
-                parent.normalize(); 
-            });
-        };
-
-        const highlightTextInNode = (root, text) => {
-            const regex = new RegExp(`(${text})`, 'gi');
-
-            const walker = document.createTreeWalker(
-                root, 
-                NodeFilter.SHOW_TEXT, 
-                {
-                    acceptNode: (node) => {
-                        if (node.parentElement.closest('header') || 
-                            node.parentElement.tagName === 'SCRIPT' || 
-                            node.parentElement.tagName === 'STYLE') {
-                            return NodeFilter.FILTER_REJECT;
-                        }
-                        return NodeFilter.FILTER_ACCEPT;
-                    }
-                }
-            );
-
-            const nodesToReplace = [];
-            while (walker.nextNode()) {
-                const node = walker.currentNode;
-                if (node.nodeValue.match(regex)) {
-                    nodesToReplace.push(node);
-                }
-            }
-
-
-            nodesToReplace.forEach(node => {
-                const fragment = document.createDocumentFragment();
-                let lastIdx = 0;
-                node.nodeValue.replace(regex, (match, p1, offset) => {
-
-                    fragment.appendChild(document.createTextNode(node.nodeValue.slice(lastIdx, offset)));
-                    
-                    const span = document.createElement('span');
-                    span.className = 'speedrun-highlight';
-                    span.textContent = match;
-                    fragment.appendChild(span);
-                    
-                    lastIdx = offset + match.length;
-                    return match;
-                });
-
-                fragment.appendChild(document.createTextNode(node.nodeValue.slice(lastIdx)));
-                
-                node.parentNode.replaceChild(fragment, node);
-            });
-        };
-
-        return {
-            showDropdown,
-            toggleDropdown,
-            searchText,
-            handleSearch
-        };
-    }
+const clearHighlights = () => {
+  document.querySelectorAll('.speedrun-highlight').forEach(element => {
+    element.replaceWith(document.createTextNode(element.textContent || ''))
+  })
+  document.body.normalize()
 }
+
+const handleSearch = () => {
+  clearHighlights()
+  const query = searchText.value.trim()
+  if (!query) return
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const expression = new RegExp(escaped, 'gi')
+  const walker = document.createTreeWalker(document.querySelector('main') || document.body, NodeFilter.SHOW_TEXT)
+  const matches = []
+  while (walker.nextNode()) {
+    const node = walker.currentNode
+    if (node.parentElement?.closest('script, style, .settings-modal') || !expression.test(node.nodeValue || '')) continue
+    expression.lastIndex = 0
+    matches.push(node)
+  }
+  matches.forEach(node => {
+    const fragment = document.createDocumentFragment()
+    let start = 0
+    ;(node.nodeValue || '').replace(expression, (match, offset) => {
+      fragment.append(node.nodeValue.slice(start, offset))
+      const mark = document.createElement('mark')
+      mark.className = 'speedrun-highlight'
+      mark.textContent = match
+      fragment.append(mark)
+      start = offset + match.length
+      return match
+    })
+    fragment.append(node.nodeValue.slice(start))
+    node.replaceWith(fragment)
+  })
+}
+
+const openSettings = () => {
+  showDropdown.value = false
+  emit('open-settings')
+}
+
+const closeOnOutsideClick = (event) => {
+  if (!menuRoot.value?.contains(event.target)) showDropdown.value = false
+}
+
+onMounted(() => document.addEventListener('click', closeOnOutsideClick))
+onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick))
 </script>
 
 <style>
-
 .speedrun-highlight {
-    background-color: #ffeb3b;
-    color: #000;
-    font-weight: bold;
-    border-radius: 2px;
-    box-shadow: 0 0 2px rgba(255, 235, 59, 0.8);
+  background: #ffe066;
+  color: #172127;
+  border-radius: 2px;
+  padding: 0 1px;
 }
 </style>
 
 <style scoped>
-.container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 64px;
-    background-color: #ABCAD1;
-    padding: 0 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative;
-    z-index: 100;
+.site-header {
+  height: 66px;
+  background: rgba(185, 214, 220, 0.96);
+  border-bottom: 1px solid rgba(43, 65, 72, 0.18);
+  box-shadow: 0 1px 4px rgba(22, 37, 42, 0.12);
+  position: relative;
+  z-index: 100;
 }
 
-.options {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 70%;
-    height: 100%;
+.header-inner {
+  max-width: var(--content-width);
+  width: calc(100% - 32px);
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-.logo {
-    height: 100%;
-    display: flex;
-    align-items: center;
+.brand { display: flex; align-items: center; flex: 0 0 auto; }
+.brand img { width: 198px; height: 45px; object-fit: contain; }
+
+.primary-nav { display: flex; align-items: stretch; height: 100%; gap: 2px; }
+.primary-nav a,
+.more-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #24353b;
+  padding: 0 12px;
+  font-size: 15px;
+  font-weight: 650;
+  text-decoration: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.primary-nav a:hover,
+.more-button:hover { background: rgba(35, 55, 62, 0.08); }
+.primary-nav svg { width: 15px; fill: none; stroke: currentColor; stroke-width: 2; }
+.more-button { font-size: 24px; padding: 0 8px; }
+
+.header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.supporter {
+  height: 36px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(41, 59, 65, 0.2);
+  border-radius: 5px;
+  color: #293a40;
+  background: rgba(255, 255, 255, 0.2);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 900;
 }
 
-.nav {
-    display: flex;
-    align-items: center;
-    font: 16px Arial, sans-serif;
-    justify-content: flex-start;
-    flex-grow: 1;
-    padding: 0 30px;
+.search-box {
+  width: min(360px, 24vw);
+  height: 40px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid rgba(45, 65, 71, 0.18);
+  border-radius: 5px;
+  background: rgba(126, 165, 174, 0.22);
 }
+.search-box:focus-within { background: rgba(255,255,255,.45); box-shadow: 0 0 0 2px rgba(54,111,127,.13); }
+.search-box svg { width: 18px; fill: none; stroke: #526c74; stroke-width: 2; flex: 0 0 auto; }
+.search-box input { min-width: 0; flex: 1; border: 0; outline: 0; background: none; color: #26383e; font: inherit; }
+.search-box input::placeholder { color: #637c83; }
+.search-box kbd { border: 1px solid rgba(45,65,71,.25); border-radius: 4px; padding: 1px 6px; color: #52686e; background: rgba(255,255,255,.18); }
 
-.nav button {
-    background: none;
-    border: none;
-    margin: 0 12px;
-    font-size: 18px;
-    font-weight: 550;
-    cursor: pointer;
-    color: #333;
-    padding: 8px 14px;
-    border-radius: 8px;
-    transition: background 0.2s, box-shadow 0.2s;
+.icon-button,
+.user-trigger {
+  border: 0;
+  background: transparent;
+  color: #31464d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.icon-button { width: 34px; height: 40px; border-radius: 5px; }
+.icon-button:hover,
+.user-trigger:hover { background: rgba(35,55,62,.08); }
+.icon-button svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 
-.nav button:hover {
-    background: rgba(0, 0, 0, 0.08);  /* 浅灰 */
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);  /* 轻边框 */
-}
+.user-menu { position: relative; }
+.user-trigger { gap: 6px; height: 48px; padding: 0 4px; border-radius: 24px; }
+.user-trigger img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.8); }
+.user-trigger svg { width: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
 
-.user-menu-wrapper {
-    position: relative;
-    height: 100%;
-    display: flex;
-    align-items: center;
-}
-
-.search-container {
-    display: flex;
-    align-items: center;
-    background-color: rgba(255, 255, 255, 0.5);
-    border-radius: 5px;
-    padding: 5px 10px;
-    margin-right: 15px;
-    height: 25px;
-    width: auto;
-    transition: all 0.2s;
-}
-
-.search-container:focus-within {
-    background-color: #fff;
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
-}
-
-.search-icon {
-    width: 18px;
-    height: 18px;
-    fill: #555;
-    margin-right: 5px;
-}
-
-.search-container input {
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 14px;
-    width: 120px; /* 初始宽度 */
-    transition: width 0.2s;
-}
-
-.search-container input:focus {
-    width: 160px; /* 聚焦时变宽 */
-}
-
-/* --- 头像触发器 --- */
-.user-avatar-trigger {
-    display: flex;
-    align-items: center;
-    padding: 4px 8px; /* 稍微调小 padding 看起来更精致 */
-    border-radius: 999px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.user-avatar-trigger:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-}
-
-.user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 5px;
-    border: 2px solid #FFF; /* 加粗边框 */
-}
-
-.chevron-down {
-    width: 16px;
-    height: 16px;
-    color: #333;
-}
-
-/* --- 修复：下拉菜单定位 --- */
 .user-dropdown {
-    position: absolute;
-    /* 关键修复：不再使用 top: 150px */
-    top: calc(100% + 10px); /* 100% 是父元素底部，+10px 是间距 */
-    right: 0; /* 对齐右边缘 */
-    min-width: 220px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    padding: 8px 0;
-    overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 220px;
+  padding: 7px;
+  border: 1px solid #dbe3e6;
+  border-radius: 8px;
+  background: #f8fbfc;
+  color: #2b3b41;
+  box-shadow: 0 14px 35px rgba(19,36,42,.23);
+}
+.profile-row { display: flex; align-items: center; gap: 10px; padding: 8px; margin-bottom: 5px; border-bottom: 1px solid #e1e8ea; }
+.profile-row img { width: 38px; height: 38px; object-fit: cover; border-radius: 50%; }
+.profile-row div { display: flex; flex-direction: column; text-align: left; }
+.profile-row small { color: #71848a; margin-top: 2px; }
+.user-dropdown a,
+.user-dropdown > button { display: block; box-sizing: border-box; width: 100%; padding: 10px; border: 0; border-radius: 5px; background: none; color: inherit; text-decoration: none; text-align: left; font: inherit; cursor: pointer; }
+.user-dropdown a:hover,
+.user-dropdown > button:hover { background: #e9f0f2; }
+.user-dropdown .sign-out { color: #b84b4b; border-top: 1px solid #e1e8ea; border-radius: 0 0 5px 5px; }
+.menu-fade-enter-active,.menu-fade-leave-active { transition: opacity .14s ease, transform .14s ease; }
+.menu-fade-enter-from,.menu-fade-leave-to { opacity: 0; transform: translateY(-6px); }
+
+@media (max-width: 1150px) {
+  .supporter, .primary-nav a:nth-child(n+3), .more-button { display: none; }
+  .search-box { width: min(310px, 32vw); }
 }
 
-/* 添加一个小三角形指向头像 (可选) */
-.user-dropdown::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    right: 20px;
-    width: 12px;
-    height: 12px;
-    background-color: #fff;
-    transform: rotate(45deg);
-    box-shadow: -2px -2px 5px rgba(0,0,0,0.05);
-}
-
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 20px;
-    cursor: pointer;
-    font-size: 15px;
-    color: #444;
-    transition: background-color 0.1s;
-}
-
-.dropdown-item:hover {
-    background-color: #f5f7fa;
-    color: #000;
-}
-
-.dropdown-item .icon {
-    width: 18px;
-    height: 18px;
-    margin-right: 12px;
-    fill: #888;
-}
-
-.dropdown-item:hover .icon {
-    fill: #333;
-}
-
-.user-profile {
-    font-weight: 600;
-    color: #2c3e50;
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 12px;
-    margin-bottom: 5px;
-}
-
-.sign-out {
-    margin-top: 5px;
-    border-top: 1px solid #eee;
-    padding-top: 12px;
-    color: #e74c3c;
-}
-
-.sign-out .icon {
-    fill: #e74c3c;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.2s, transform 0.2s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-    transform: translateY(-10px);
+@media (max-width: 760px) {
+  .site-header { height: 58px; }
+  .header-inner { width: calc(100% - 20px); gap: 8px; }
+  .brand img { width: 150px; height: 36px; }
+  .primary-nav, .icon-button { display: none; }
+  .search-box { margin-left: auto; width: 38px; padding: 0 9px; }
+  .search-box input, .search-box kbd { display: none; }
 }
 </style>
