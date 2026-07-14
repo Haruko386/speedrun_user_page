@@ -60,7 +60,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
-import fallbackAvatar from '../assets/avatar.png'
+import fallbackAvatar from '../assets/image.jpg'
 import { avatarUrl } from '@/data/catalog'
 
 const emit = defineEmits(['open-settings'])
