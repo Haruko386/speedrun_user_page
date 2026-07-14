@@ -6,8 +6,8 @@
 #### To do list: 
 
 - [x] 完成项目复现 🖌️
-- [ ] 在`Banner`的⚙️Setting中增加可以修改数据的功能，也能将修改的数据写回public中的src_json中 📖
-- [ ] 可以导入不同`src_json`以实现不同的用户数据展示(没有speedrun的数据用户接口我是真没办法知道某些id代表的什么意思😭)
+- [x] 在`Banner`的⚙️Setting中增加可以修改数据的功能，也能将修改的数据写回public中的src_json中 📖
+- [x] 可以导入不同`src_json`以实现不同的用户数据展示(没有speedrun的数据用户接口我是真没办法知道某些id代表的什么意思😭)
 
 > 复现目标大概是：
 > ![image](/doc/image.png)
